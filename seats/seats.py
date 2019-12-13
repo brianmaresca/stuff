@@ -24,7 +24,7 @@ hat = [
     'Leif',
     'Travis',
 #    'Kexin',
-#    'Bhalchandra',
+    'Bhalchandra',
     'Josh',
     'Mario',
     'Skyler'
@@ -56,28 +56,28 @@ cache['shuffle'] = {}
 common = {}
 common['_links'] = {
         'seats': {
-            'href':'http://192.168.100.220:5000/seats',
+            'href':'http://172.17.181.228:5000/seats',
             'method' : 'GET'
         },
         'select_seat': {
-            'href': 'http://192.168.100.220:5000/seats?name={name}&seat={seat}',
+            'href': 'http://172.17.181.228:5000/seats?name={name}&seat={seat}',
             'method': 'PUT',
             'templated': 'true :D'
         },
         'delete_seats': {
-            'href': 'http://192.168.100.220:5000/seats',
+            'href': 'http://172.17.181.228:5000/seats',
             'method': 'DELETE'
         },
         # 'shuffle': {
-        #     'href': 'http://192.168.100.220:5000/seats/shuffle',
+        #     'href': 'http://172.17.181.228:5000/seats/shuffle',
         #     'method': 'POST'
         # },
         'clear_shuffle': {
-            'href': 'http://192.168.100.220:5000/seats/shuffle/clear',
+            'href': 'http://172.17.181.228:5000/seats/shuffle/clear',
             'method': 'POST'
         },
         'clear_seat': {
-            'href': 'http://192.168.100.220:5000/seats?name={currently_assigned_name}&seat={seat_to_clear}',
+            'href': 'http://172.17.181.228:5000/seats?name={currently_assigned_name}&seat={seat_to_clear}',
             'method': 'PUT',
             'templated': 'true :D'
         }
