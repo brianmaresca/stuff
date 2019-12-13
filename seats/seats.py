@@ -55,6 +55,7 @@ cache['seats'] = ['     0     ',
                   '    17     ',
                   '    18     ']
 cache['shuffled'] = False
+cache['shuffle'] = {}
 common = {}
 common['_links'] = {
         'seats': {
@@ -62,7 +63,7 @@ common['_links'] = {
             'method' : 'GET'
         },
         'select_seat': {
-            'href': 'http://192.168.100.220:5000/seats/select?name={name}&seat={seat}',
+            'href': 'http://192.168.100.220:5000/seats?name={name}&seat={seat}',
             'method': 'PUT',
             'templated': 'true :D'
         },
@@ -70,13 +71,18 @@ common['_links'] = {
             'href': 'http://192.168.100.220:5000/seats',
             'method': 'DELETE'
         },
-        'shuffle': {
-            'href': 'http://192.168.100.220:5000/seats/shuffle',
-            'method': 'POST'
-        },
+        # 'shuffle': {
+        #     'href': 'http://192.168.100.220:5000/seats/shuffle',
+        #     'method': 'POST'
+        # },
         'clear_shuffle': {
             'href': 'http://192.168.100.220:5000/seats/shuffle/clear',
             'method': 'POST'
+        },
+        'clear_seat': {
+            'href': 'http://192.168.100.220:5000/seats?name={currently_assigned_name}&seat={seat_to_clear}',
+            'method': 'PUT',
+            'templated': 'true :D'
         }
 }
 
@@ -88,7 +94,7 @@ def choose_seat(name, seat):
 @app.route('/seats/links', methods = ['GET'])
 def getLinks():
     body = {'_links' : common['_links']}
-    return  Response(json.dumps(body), status=200, mimetype='application/json')
+    return Response(json.dumps(body), status=200, mimetype='application/json')
 
 
 @app.route('/seats/shuffle/clear', methods = ['POST'])
@@ -98,6 +104,7 @@ def clearShuffled():
         }
 
     cache['shuffled'] = False
+    cache['shuffle'] = {}
     return Response(json.dumps(resp,indent=4), status=200, mimetype='application/json')
 
 @app.route('/seats', methods = ['DELETE'])
@@ -108,13 +115,14 @@ def clear():
 @app.route('/seats/shuffle', methods = ['POST'])
 def shuffle():
     if cache['shuffled'] == True:
-        resp = {
-            'error': 'the order has already been determined you cheater!!',
-            'order': hat,
-            '_links' : common['_links']
-        }
-
-        return Response(json.dumps(resp,indent=4), status=409, mimetype='application/json')
+        return cache['shuffle']
+        # resp = {
+        #     'error': 'the order has already been determined you cheater!!',
+        #     'order': hat,
+        #     '_links' : common['_links']
+        # }
+        #
+        # return Response(json.dumps(resp,indent=4), status=409, mimetype='application/json')
     shuffled = {}
 
     for i in range(50):
@@ -127,20 +135,27 @@ def shuffle():
         'order': shuffled,
         '_links' : common['_links']
     }
-    j = json.dumps(resp, indent=4, sort_keys=False)
 
-    resp = Response(j, status=200, mimetype='application/json')
+    j = json.dumps(resp, indent=4, sort_keys=False)
+    #
+    # resp = Response(j, status=200, mimetype='application/json')
     cache['shuffled'] = True
-    return resp
+    cache['shuffle'] = j
+    return cache['shuffle']
 
 @app.route('/seats', methods = ['GET'])
 def seats():
+
     bstring = drawString()
+    bstring = bstring + '\n'
+    bstring = bstring + '\n' + shuffle() + '\n'
+    # bstring = bstring + json.dumps({'_links' : common['_links']}, indent=4, sort_keys=True)
+    bstring = bstring + '\n'
     resp = Response(bstring, status=200, mimetype='text/plain')
 
     return resp
 
-@app.route('/seats/select', methods = ['PUT'])
+@app.route('/seats', methods = ['PUT'])
 def selectSeat():
     name = request.args.get('name')
     seat = int(request.args.get('seat'))
@@ -150,7 +165,7 @@ def selectSeat():
         return Response(json.dumps(error), status=400, mimetype='application/json')
     tmp = cache['seats']
     y = tmp[seat].strip()
-    if (clear == 'true' and y.lower() == name.lower()):
+    if (clear == 'true'): #and y.lower() == name.lower()):
         formatted = str(seat)
         while len(formatted) != 11:
             if len(formatted) > 11:
@@ -158,7 +173,7 @@ def selectSeat():
             elif len(formatted) < 11:
                 formatted = formatted + ' '
         cache['seats'][seat] = formatted
-        return Response(drawString(), status=200, mimetype='text/plain')
+        return seats() # Response(drawString(), status=200, mimetype='text/plain')
     nums = []
     names = []
     for s in tmp:
@@ -178,7 +193,7 @@ def selectSeat():
             return Response(json.dumps(error), status=409, mimetype='application/json')
 
     choose_seat(name, seat)
-    return drawString()
+    return seats()
 
 
 @app.route('/')
